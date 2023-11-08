@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"os"
 
 	"github.com/TimiBolu/live-go-examples/rest-api/database"
-	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func main() {
@@ -19,23 +16,25 @@ func main() {
 
 	defer database.CloseMongoDB()
 
-	app := fiber.New()
+	app := generateApp()
 
-	app.Post("/", func(c *fiber.Ctx) error {
-		// write a todo to the database
-		sampleDoc := bson.M{"name": "sample todo"}
-		collection := database.GetCollection("todos")
-		nDoc, err := collection.InsertOne(context.TODO(), sampleDoc)
+	// app.Post("/", func(c *fiber.Ctx) error {
+	// 	// write a todo to the database
+	// 	sampleDoc := bson.M{"name": "sample todo"}
+	// 	collection := database.GetCollection("todos")
+	// 	nDoc, err := collection.InsertOne(context.TODO(), sampleDoc)
 
-		if err != nil {
-			fmt.Println(err)
-			return c.Status(fiber.StatusInternalServerError).SendString("Error inserting todo")
-		}
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 		return c.Status(fiber.StatusInternalServerError).SendString("Error inserting todo")
+	// 	}
 
-		return c.JSON(nDoc)
-	})
+	// 	return c.JSON(nDoc)
+	// })
 
-	app.Listen(":4005")
+	// get the port from the env
+	port := os.Getenv("PORT")
+	app.Listen(":" + port)
 }
 
 func initApp() error {
@@ -53,9 +52,12 @@ func initApp() error {
 }
 
 func loadENV() error {
-	err := godotenv.Load()
-	if err != nil {
-		return err
+	goEnv := os.Getenv("GO_ENV")
+	if goEnv == "" {
+		err := godotenv.Load()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
